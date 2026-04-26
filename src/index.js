@@ -3,9 +3,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import path from 'path';
-import { existsSync } from 'fs';
-import { fileURLToPath } from 'url';
 
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/auth.js';
@@ -14,8 +11,6 @@ import contactsRoutes from './routes/contacts.js';
 import { errorHandler, notFoundHandler } from './middleware/errors.js';
 
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Security & logging
 app.use(helmet());
@@ -42,16 +37,6 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/ads', adsRoutes);
 app.use('/api/contacts', contactsRoutes);
-
-// Serve React build and support client-side routing in production.
-const clientDistPath = path.resolve(__dirname, '../../client/dist');
-if (existsSync(clientDistPath)) {
-  app.use(express.static(clientDistPath));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    return res.sendFile(path.join(clientDistPath, 'index.html'));
-  });
-}
 
 // 404 + error handlers
 app.use(notFoundHandler);
