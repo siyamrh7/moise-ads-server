@@ -24,15 +24,40 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /api/ads — create new ad (always starts as 'idea')
+// POST /api/ads — create new ad (default status 'idea').
+// Optional body.markReady (Ray only): create as 'ready' in one step when Drive link present (avoids a second transition call).
 router.post('/', async (req, res, next) => {
   try {
+    const markReady = req.body.markReady === true;
     const data = sanitize(req.body);
+
+    if (markReady) {
+      if (req.user.role !== 'ray') {
+        return res.status(403).json({ error: 'Only Ray can create an ad directly as ready' });
+      }
+      const link = data.driveLink && String(data.driveLink).trim();
+      if (!link) {
+        return res.status(400).json({ error: 'Drive link required before marking as ready' });
+      }
+    }
+
+    const status = markReady ? 'ready' : (data.status || 'idea');
+
     const ad = await Ad.create({
       ...data,
-      status: data.status || 'idea',
+      status,
       createdBy: req.user.role
     });
+
+    if (markReady) {
+      ad.comments.push({
+        author: 'system',
+        body: 'Ray: marked the creative ready (Drive link added).'
+      });
+      await ad.save();
+    }
+
+    await ad.populate('creator', 'name');
     res.status(201).json({ ad });
   } catch (err) { next(err); }
 });
@@ -125,7 +150,7 @@ function sanitize(body) {
 // Defines which status transitions are allowed for which role.
 function isTransitionAllowed(ad, newStatus, userRole) {
   const transitions = {
-    idea:       { ray: ['review', 'live'],      agency: ['review'] }, // 'live' for Ray's deploy-directly
+    idea:       { ray: ['review', 'live', 'ready'], agency: ['review'] }, // 'live' deploy-directly; 'ready' from new-idea Save & mark ready
     review:     { ray: ['production', 'feedback', 'archive'], agency: ['production', 'feedback', 'archive'] },
     feedback:   { ray: ['review'],               agency: ['review'] },
     production: { ray: [],                       agency: ['ready'] },
