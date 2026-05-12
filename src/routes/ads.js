@@ -154,7 +154,7 @@ function isTransitionAllowed(ad, newStatus, userRole) {
     review:     { ray: ['production', 'feedback', 'archive'], agency: ['production', 'feedback', 'archive'] },
     feedback:   { ray: ['review'],               agency: ['review'] },
     production: { ray: [],                       agency: ['ready'] },
-    ready:      { ray: ['live', 'production'],   agency: [] },
+    ready:      { ray: ['live', 'production'],   agency: ['live'] },
     live:       { ray: ['paused'],               agency: [] },
     paused:     { ray: ['live', 'archive'],      agency: [] },
     archive:    { ray: ['idea'],                 agency: [] }
