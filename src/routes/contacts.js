@@ -8,7 +8,9 @@ router.use(requireAuth);
 
 router.get('/', async (req, res, next) => {
   try {
-    const contacts = await Contact.find().sort('name');
+    const query = {};
+    if (req.query.country) query.country = req.query.country;
+    const contacts = await Contact.find(query).sort('name');
     // Attach ads count per contact
     const counts = await Ad.aggregate([
       { $match: { creator: { $ne: null } } },
@@ -26,7 +28,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   try {
     const data = sanitize(req.body);
-    const contact = await Contact.create(data);
+    const contact = await Contact.create({ ...data, country: data.country || 'NL' });
     res.status(201).json({ contact });
   } catch (err) { next(err); }
 });
@@ -53,7 +55,7 @@ router.delete('/:id', async (req, res, next) => {
 
 function sanitize(body) {
   const allowed = [
-    'name', 'type', 'instagram', 'tiktok', 'email',
+    'name', 'country', 'type', 'instagram', 'tiktok', 'email',
     'phone', 'whatsapp', 'preferredChannel', 'notes'
   ];
   const out = {};

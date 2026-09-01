@@ -5,10 +5,12 @@ import { requireAuth } from '../middleware/auth.js';
 const router = express.Router();
 router.use(requireAuth);
 
-// GET /api/ads — list all ads (populated with creator name)
+// GET /api/ads — list ads, optionally scoped to a market (?country=NL|DE)
 router.get('/', async (req, res, next) => {
   try {
-    const ads = await Ad.find()
+    const query = {};
+    if (req.query.country) query.country = req.query.country;
+    const ads = await Ad.find(query)
       .populate('creator', 'name')
       .sort('-updatedAt');
     res.json({ ads });
@@ -45,6 +47,7 @@ router.post('/', async (req, res, next) => {
 
     const ad = await Ad.create({
       ...data,
+      country: data.country || 'NL',
       status,
       createdBy: req.user.role
     });
@@ -132,7 +135,7 @@ router.delete('/:id', async (req, res, next) => {
 
 function sanitize(body) {
   const allowed = [
-    'title', 'phase', 'format', 'icp', 'media', 'contentType',
+    'title', 'country', 'phase', 'format', 'icp', 'media', 'contentType',
     'creator', 'status', 'hook', 'concept', 'script', 'shotlist',
     'visualRef', 'visualDesc', 'driveLink', 'notes', 'parentAdId'
   ];

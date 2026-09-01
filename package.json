@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "seed": "node src/seed.js"
+    "seed": "node src/seed.js",
+    "migrate:country": "node src/scripts/backfillCountry.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

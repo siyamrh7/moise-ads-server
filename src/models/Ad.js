@@ -8,6 +8,13 @@ const commentSchema = new mongoose.Schema({
 
 const adSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
+  country: {
+    type: String,
+    enum: ['NL', 'DE'],
+    default: 'NL',
+    required: true,
+    index: true
+  },
   phase: {
     type: String,
     enum: ['', 'unaware', 'problem', 'solution', 'product', 'most', 'caring'],

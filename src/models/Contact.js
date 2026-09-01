@@ -2,6 +2,13 @@ import mongoose from 'mongoose';
 
 const contactSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
+  country: {
+    type: String,
+    enum: ['NL', 'DE'],
+    default: 'NL',
+    required: true,
+    index: true
+  },
   type: { type: String, default: 'creator' },
   instagram: { type: String, default: '', trim: true },
   tiktok:    { type: String, default: '', trim: true },
